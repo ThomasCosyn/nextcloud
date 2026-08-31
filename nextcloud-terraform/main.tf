@@ -38,10 +38,9 @@ resource "scaleway_instance_server" "nextcloud" {
       db_name                  = var.db_name
       db_user                  = var.db_user
       s3_bucket_name           = var.s3_bucket_name
-      s3_endpoint              = scaleway_object_bucket.nextcloud.endpoint
+      s3_endpoint              = "https://s3.${var.scw_region}.scw.cloud"
       nextcloud_admin_user     = var.nextcloud_admin_user
       nextcloud_admin_password = var.nextcloud_admin_password
-      nextcloud_public_ip      = scaleway_instance_server.nextcloud.public_ip
       domain_name              = var.domain_name
     })
   }
@@ -167,7 +166,7 @@ resource "scaleway_instance_security_group" "db" {
     action   = "accept"
     protocol = "TCP"
     port     = 5432
-    ip_range = scaleway_instance_server.nextcloud.private_ip
+    ip_range = "0.0.0.0/0"  # Temporary for testing, restrict to private_ip in production
   }
 
   # Allow outbound traffic
@@ -203,11 +202,11 @@ module "nextcloud" {
   source = "./modules/nextcloud"
 
   # Instance information
-  instance_public_ip_range  = scaleway_instance_server.nextcloud.public_ip
-  instance_private_ip_range = scaleway_instance_server.nextcloud.private_ip
+  instance_public_ip  = scaleway_instance_server.nextcloud.public_ip
+  instance_private_ip = scaleway_instance_server.nextcloud.private_ip
 
   # Database information
-  db_host     = scaleway_rdb_instance.nextcloud_db.load_balancer[0].ip
+  db_host     = scaleway_rdb_instance.nextcloud_db.load_balancer[0].hostname
   db_port     = scaleway_rdb_instance.nextcloud_db.load_balancer[0].port
   db_name     = var.db_name
   db_user     = var.db_user
