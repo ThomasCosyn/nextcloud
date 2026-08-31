@@ -177,7 +177,7 @@ resource "scaleway_instance_security_group" "db" {
     action   = "accept"
     protocol = "TCP"
     port     = 5432
-    ip_range = "0.0.0.0/0"  # Temporary for testing, restrict to private_ip in production
+    ip_range = "0.0.0.0/0" # Temporary for testing, restrict to private_ip in production
   }
 
   # Allow outbound traffic
