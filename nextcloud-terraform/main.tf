@@ -32,13 +32,16 @@ resource "scaleway_instance_server" "nextcloud" {
   user_data = {
     cloud-init = templatefile("${path.module}/modules/nextcloud/scripts/cloud-init.yml", {
       ssh_public_key           = var.ssh_public_key
-      db_host                  = scaleway_rdb_instance.nextcloud_db.load_balancer.hostname
+      db_host                  = scaleway_rdb_instance.nextcloud_db.load_balancer[0].hostname
+      db_port                  = scaleway_rdb_instance.nextcloud_db.load_balancer[0].port
       db_password              = var.db_password
       db_name                  = var.db_name
       db_user                  = var.db_user
       s3_bucket_name           = var.s3_bucket_name
+      s3_endpoint              = scaleway_object_bucket.nextcloud.endpoint
       nextcloud_admin_user     = var.nextcloud_admin_user
       nextcloud_admin_password = var.nextcloud_admin_password
+      nextcloud_public_ip      = scaleway_instance_server.nextcloud.public_ip
       domain_name              = var.domain_name
     })
   }
@@ -170,7 +173,7 @@ resource "scaleway_instance_security_group" "db" {
   # Allow outbound traffic
   outbound_rule {
     action   = "accept"
-    protocol = "-1"
+    protocol = "ANY"
     ip_range = "0.0.0.0/0"
   }
 }
@@ -204,8 +207,8 @@ module "nextcloud" {
   instance_private_ip_range = scaleway_instance_server.nextcloud.private_ip
 
   # Database information
-  db_host     = scaleway_rdb_instance.nextcloud_db.ip
-  db_port     = scaleway_rdb_instance.nextcloud_db.port
+  db_host     = scaleway_rdb_instance.nextcloud_db.load_balancer[0].ip
+  db_port     = scaleway_rdb_instance.nextcloud_db.load_balancer[0].port
   db_name     = var.db_name
   db_user     = var.db_user
   db_password = var.db_password

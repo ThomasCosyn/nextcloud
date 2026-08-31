@@ -19,7 +19,7 @@ resource "local_file" "nextcloud_install_script" {
     admin_user         = var.admin_user
     admin_password     = var.admin_password
     email              = var.email
-    instance_public_ip = var.instance_public_ip
+    instance_public_ip = var.instance_public_ip_range
   })
 }
 
