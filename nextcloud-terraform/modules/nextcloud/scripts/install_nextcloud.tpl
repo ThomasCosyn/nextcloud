@@ -16,15 +16,15 @@ NC='\033[0m' # No Color
 
 # Logging functions
 log_info() {
-    echo -e "${GREEN}[INFO]${NC} $1"
+    echo -e "$$GREEN[INFO]$$NC $1"
 }
 
 log_warn() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
+    echo -e "$$YELLOW[WARN]$$NC $1"
 }
 
 log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
+    echo -e "$$RED[ERROR]$$NC $1"
 }
 
 # Check if running as root
@@ -111,7 +111,7 @@ systemctl restart php8.1-fpm
 
 # Install and configure Nginx
 log_info "Configuring Nginx..."
-cat > /etc/nginx/sites-available/nextcloud.conf << EOL
+cat > /etc/nginx/sites-available/nextcloud.conf << EOF
 server {
     listen 80;
     listen [::]:80;
@@ -133,14 +133,14 @@ server {
     index index.php index.html index.htm;
 
     # Prevent direct access to special files
-    location ~ /\.(?!well-known) {
+    location ~ /\\.(?!well-known) {
         deny all;
         access_log off;
         log_not_found off;
     }
 
     # Prevent access to config.php
-    location ~ ^/(config\.php|\.htaccess) {
+    location ~ ^/(config\\.php|\\.htaccess) {
         deny all;
         access_log off;
         log_not_found off;
@@ -154,9 +154,9 @@ server {
     }
 
     # Rewrite rules
-    rewrite ^/caldav(.*)$ /remote.php/dav/\$1 redirect;
-    rewrite ^/carddav(.*)$ /remote.php/dav/\$1 redirect;
-    rewrite ^/webdav(.*)$ /remote.php/dav/\$1 redirect;
+    rewrite ^/caldav(.*)\$ /remote.php/dav/\$1 redirect;
+    rewrite ^/carddav(.*)\$ /remote.php/dav/\$1 redirect;
+    rewrite ^/webdav(.*)\$ /remote.php/dav/\$1 redirect;
 
     # Main location block
     location / {
@@ -164,7 +164,7 @@ server {
     }
 
     # PHP handling
-    location ~ \.php(?:\$|/) {
+    location ~ \\.php(?:\$|/) {
         include snippets/fastcgi-php.conf;
         fastcgi_pass unix:/run/php/php8.1-fpm-nextcloud.sock;
         fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
@@ -177,19 +177,19 @@ server {
     }
 
     # Static files
-    location ~* \.(?:css|js|woff2?|svg|gif|map|json)$ {
+    location ~* \\.(?:css|js|woff2?|svg|gif|map|json)\$ {
         try_files \$uri /index.php\$uri\$is_args\$args;
         add_header Cache-Control "public, max-age=15778463";
         access_log off;
     }
 
     # Images
-    location ~* \.(?:png|html|ttf|ico|jpg|jpeg|bcmap)$ {
+    location ~* \\.(?:png|html|ttf|ico|jpg|jpeg|bcmap)\$ {
         try_files \$uri /index.php\$uri\$is_args\$args;
         access_log off;
     }
 }
-EOL
+EOF
 
 # Enable the Nextcloud site
 ln -sf /etc/nginx/sites-available/nextcloud.conf /etc/nginx/sites-enabled/nextcloud.conf
@@ -246,9 +246,6 @@ log_info "Installing PHP S3 SDK..."
 apt-get install -y php-pear
 pear install pear/AWS_SDK_for_PHP
 
-# Configure Nextcloud to use S3
-# This will be done through the Nextcloud admin interface after installation
-
 # Install Certbot for Let's Encrypt
 log_info "Setting up SSL with Let's Encrypt..."
 
@@ -265,7 +262,7 @@ certbot certonly --standalone --non-interactive --agree-tos \
 systemctl start nginx
 
 # Update Nginx configuration to use SSL
-cat > /etc/nginx/sites-available/nextcloud.conf << EOL
+cat > /etc/nginx/sites-available/nextcloud.conf << EOF
 server {
     listen 80;
     listen [::]:80;
@@ -308,14 +305,14 @@ server {
     index index.php index.html index.htm;
 
     # Prevent direct access to special files
-    location ~ /\.(?!well-known) {
+    location ~ /\\.(?!well-known) {
         deny all;
         access_log off;
         log_not_found off;
     }
 
     # Prevent access to config.php
-    location ~ ^/(config\.php|\.htaccess) {
+    location ~ ^/(config\\.php|\\.htaccess) {
         deny all;
         access_log off;
         log_not_found off;
@@ -329,9 +326,9 @@ server {
     }
 
     # Rewrite rules
-    rewrite ^/caldav(.*)$ /remote.php/dav/\$1 redirect;
-    rewrite ^/carddav(.*)$ /remote.php/dav/\$1 redirect;
-    rewrite ^/webdav(.*)$ /remote.php/dav/\$1 redirect;
+    rewrite ^/caldav(.*)\$ /remote.php/dav/\$1 redirect;
+    rewrite ^/carddav(.*)\$ /remote.php/dav/\$1 redirect;
+    rewrite ^/webdav(.*)\$ /remote.php/dav/\$1 redirect;
 
     # Main location block
     location / {
@@ -339,7 +336,7 @@ server {
     }
 
     # PHP handling
-    location ~ \.php(?:\$|/) {
+    location ~ \\.php(?:\$|/) {
         include snippets/fastcgi-php.conf;
         fastcgi_pass unix:/run/php/php8.1-fpm-nextcloud.sock;
         fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
@@ -352,19 +349,19 @@ server {
     }
 
     # Static files
-    location ~* \.(?:css|js|woff2?|svg|gif|map|json)$ {
+    location ~* \\.(?:css|js|woff2?|svg|gif|map|json)\$ {
         try_files \$uri /index.php\$uri\$is_args\$args;
         add_header Cache-Control "public, max-age=15778463";
         access_log off;
     }
 
     # Images
-    location ~* \.(?:png|html|ttf|ico|jpg|jpeg|bcmap)$ {
+    location ~* \\.(?:png|html|ttf|ico|jpg|jpeg|bcmap)\$ {
         try_files \$uri /index.php\$uri\$is_args\$args;
         access_log off;
     }
 }
-EOL
+EOF
 
 # Test Nginx configuration
 nginx -t
