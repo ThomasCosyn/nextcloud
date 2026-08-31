@@ -110,16 +110,13 @@ resource "scaleway_rdb_instance" "nextcloud_db" {
   volume_type       = "sbs_5k"
   volume_size_in_gb = var.db_volume_size
   region            = var.scw_region
+  password          = var.db_password
+  user_name         = var.db_user
 
   settings = {
     "postgresql.max_connections" = "100"
     "postgresql.shared_buffers"  = "256MB"
-  }
-
-  init_settings = {
-    username = var.db_user
-    password = var.db_password
-    database = var.db_name
+    "max_connections"            = "350"
   }
 
   tags = ["nextcloud", "postgresql", "terraform"]
