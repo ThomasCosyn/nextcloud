@@ -107,3 +107,12 @@ variable "scw_secret_key" {
   sensitive   = true
   default     = null
 }
+
+variable "scw_project_id" {
+  description = "Scaleway project id"
+  type        = string
+  sensitive   = true
+  default     = null
+}
+
+

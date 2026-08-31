@@ -4,19 +4,22 @@ terraform {
   required_providers {
     scaleway = {
       source  = "scaleway/scaleway"
-      version = "~> 2.7.0"
+      version = "2.81"
     }
   }
 }
 
 # Configure the Scaleway provider
 provider "scaleway" {
-  zone   = var.scw_zone
-  region = var.scw_region
+  zone       = var.scw_zone
+  region     = var.scw_region
+  access_key = var.scw_access_key
+  secret_key = var.scw_secret_key
+  project_id = var.scw_project_id
 }
 
 # SSH Key resource
-resource "scaleway_account_ssh_key" "main" {
+resource "scaleway_iam_ssh_key" "main" {
   name       = "nextcloud-ssh-key"
   public_key = var.ssh_public_key
 }
@@ -62,7 +65,7 @@ resource "scaleway_instance_server" "nextcloud" {
   }
 
   security_group_id = scaleway_instance_security_group.nextcloud.id
-  
+
   user_data = {
     cloud-init = templatefile("${path.module}/modules/nextcloud/scripts/cloud-init.yml", {
       ssh_public_key = var.ssh_public_key
@@ -104,7 +107,7 @@ resource "scaleway_rdb_instance" "nextcloud_db" {
   engine            = "PostgreSQL-15"
   is_ha_cluster     = false
   disable_backup    = false
-  volume_type       = "bssd"
+  volume_type       = "sbs_5k"
   volume_size_in_gb = var.db_volume_size
   region            = var.scw_region
 

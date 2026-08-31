@@ -13,7 +13,7 @@ ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQ..."
 domain_name = "nextcloud.yourdomain.com"
 
 # Database Configuration
-db_instance_type = "DB-DEV-S"
+db_instance_type = "PLAY2-NANO"
 db_volume_size   = 20
 db_name          = "nextcloud_db"
 db_user          = "nextcloud_user"
