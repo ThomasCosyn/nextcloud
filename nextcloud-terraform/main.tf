@@ -61,9 +61,8 @@ resource "scaleway_instance_server" "nextcloud" {
     size_in_gb = var.root_volume_size
   }
 
-  ssh_key_ids = [scaleway_account_ssh_key.main.id]
   security_group_id = scaleway_instance_security_group.nextcloud.id
-
+  
   user_data = {
     cloud-init = templatefile("${path.module}/modules/nextcloud/scripts/cloud-init.yml", {
       ssh_public_key = var.ssh_public_key
@@ -78,7 +77,6 @@ resource "scaleway_instance_server" "nextcloud" {
 resource "scaleway_object_bucket" "nextcloud" {
   name   = var.s3_bucket_name
   region = var.scw_region
-  acl    = "private"
 
   versioning {
     enabled = true
@@ -91,6 +89,12 @@ resource "scaleway_object_bucket" "nextcloud" {
     expose_headers  = ["ETag"]
     max_age_seconds = 3600
   }
+}
+
+# Bucket ACL
+resource "scaleway_object_bucket_acl" "nextcloud" {
+  bucket = scaleway_object_bucket.nextcloud.name
+  acl    = "private"
 }
 
 # PostgreSQL Database (Scaleway Managed Database)
