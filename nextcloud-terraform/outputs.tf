@@ -29,25 +29,6 @@ output "s3_endpoint" {
   value       = "https://s3.${var.scw_region}.scw.cloud"
 }
 
-# Output the database connection string (sensitive)
-output "database_connection_string" {
-  description = "Connection string for the PostgreSQL database"
-  value       = "postgresql://${var.db_user}:${var.db_password}@${scaleway_rdb_instance.nextcloud_db.ip}:${scaleway_rdb_instance.nextcloud_db.port}/${var.db_name}"
-  sensitive   = true
-}
-
-# Output the database host
-output "database_host" {
-  description = "Host address of the PostgreSQL database"
-  value       = scaleway_rdb_instance.nextcloud_db.ip
-}
-
-# Output the database port
-output "database_port" {
-  description = "Port of the PostgreSQL database"
-  value       = scaleway_rdb_instance.nextcloud_db.port
-}
-
 # Output SSH connection command
 output "ssh_connection_command" {
   description = "Command to connect to the Nextcloud server via SSH"

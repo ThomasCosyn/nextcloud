@@ -3,6 +3,7 @@
 *.tfstate.*
 .terraform.lock.hcl
 .terraform/
+*.tfvars
 
 # Environment files
 .env
