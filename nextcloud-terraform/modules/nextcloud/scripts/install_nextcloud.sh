@@ -1,5 +1,7 @@
 #!/bin/bash
 # Nextcloud Installation Script for Scaleway
+# This script must be run manually after Terraform creates the infrastructure
+
 set -e
 
 # Colors for output
@@ -12,10 +14,39 @@ log_info() { echo -e "$GREEN[INFO]$NC $1"; }
 log_warn() { echo -e "$YELLOW[WARN]$NC $1"; }
 log_error() { echo -e "$RED[ERROR]$NC $1"; }
 
+# Check if running as root
 if [ "$(id -u)" -ne 0 ]; then
     log_error "This script must be run as root"
     exit 1
 fi
+
+# Get public IP of the instance
+PUBLIC_IP=$(curl -s ifconfig.me)
+log_info "Detected public IP: $PUBLIC_IP"
+
+# Ask for required variables
+read -p "Domain name (e.g., nextcloud.example.com): " DOMAIN_NAME
+read -p "Database host (from terraform output): " DB_HOST
+read -p "Database port (default 5432): " DB_PORT
+DB_PORT=${DB_PORT:-5432}
+read -p "Database name (default nextcloud_db): " DB_NAME
+DB_NAME=${DB_NAME:-nextcloud_db}
+read -p "Database user (default nextcloud_user): " DB_USER
+DB_USER=${DB_USER:-nextcloud_user}
+read -sp "Database password: " DB_PASSWORD
+echo ""
+read -p "S3 bucket name: " S3_BUCKET_NAME
+read -p "S3 endpoint (e.g., https://s3.fr-par.scw.cloud): " S3_ENDPOINT
+read -p "S3 region (e.g., fr-par): " S3_REGION
+read -sp "S3 access key: " S3_ACCESS_KEY
+echo ""
+read -sp "S3 secret key: " S3_SECRET_KEY
+echo ""
+read -p "Admin username (default admin): " ADMIN_USER
+ADMIN_USER=${ADMIN_USER:-admin}
+read -sp "Admin password: " ADMIN_PASSWORD
+echo ""
+read -p "Email for Let's Encrypt: " SSL_EMAIL
 
 log_info "Updating system packages..."
 apt-get update -y
@@ -70,7 +101,7 @@ cat > /etc/nginx/sites-available/nextcloud.conf << 'NGINXEOF'
 server {
     listen 80;
     listen [::]:80;
-    server_name ${domain_name};
+    server_name ${DOMAIN_NAME};
 
     add_header Strict-Transport-Security "max-age=15768000; includeSubDomains; preload;" always;
     add_header X-Content-Type-Options nosniff always;
@@ -153,7 +184,7 @@ log_info "Setting up SSL with Let's Encrypt..."
 systemctl stop nginx
 
 certbot certonly --standalone --non-interactive --agree-tos \
-    --email ${email} --domains ${domain_name} --preferred-challenges http-01
+    --email ${SSL_EMAIL} --domains ${DOMAIN_NAME} --preferred-challenges http-01
 
 systemctl start nginx
 
@@ -161,18 +192,18 @@ cat > /etc/nginx/sites-available/nextcloud.conf << 'NGINXEOF'
 server {
     listen 80;
     listen [::]:80;
-    server_name ${domain_name};
+    server_name ${DOMAIN_NAME};
     return 301 https://\$host\$request_uri;
 }
 
 server {
     listen 443 ssl http2;
     listen [::]:443 ssl http2;
-    server_name ${domain_name};
+    server_name ${DOMAIN_NAME};
 
-    ssl_certificate /etc/letsencrypt/live/${domain_name}/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/${domain_name}/privkey.pem;
-    ssl_trusted_certificate /etc/letsencrypt/live/${domain_name}/chain.pem;
+    ssl_certificate /etc/letsencrypt/live/${DOMAIN_NAME}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${DOMAIN_NAME}/privkey.pem;
+    ssl_trusted_certificate /etc/letsencrypt/live/${DOMAIN_NAME}/chain.pem;
 
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_prefer_server_ciphers on;
@@ -259,17 +290,17 @@ cat > /var/www/nextcloud/config/config.php << PHPEOF
   'instanceid' => 'nextcloud-instance',
   'passwordsalt' => '$(openssl rand -base64 32)',
   'secret' => '$(openssl rand -base64 32)',
-  'trusted_domains' => array (0 => '${domain_name}'),
+  'trusted_domains' => array (0 => '${DOMAIN_NAME}'),
   'datadirectory' => '/var/www/nextcloud/data',
-  'overwrite.cli.url' => 'https://${domain_name}',
+  'overwrite.cli.url' => 'https://${DOMAIN_NAME}',
   'dbtype' => 'pgsql',
   'version' => '28.0.0',
-  'dbname' => '${db_name}',
-  'dbhost' => '${db_host}:${db_port}',
-  'dbport' => '${db_port}',
+  'dbname' => '${DB_NAME}',
+  'dbhost' => '${DB_HOST}:${DB_PORT}',
+  'dbport' => '${DB_PORT}',
   'dbtableprefix' => 'oc_',
-  'dbuser' => '${db_user}',
-  'dbpassword' => '${db_password}',
+  'dbuser' => '${DB_USER}',
+  'dbpassword' => '${DB_PASSWORD}',
   'installed' => false,
 );
 PHPEOF
@@ -281,27 +312,27 @@ cd /var/www/nextcloud
 
 sudo -u www-data php occ maintenance:install \
     --database "pgsql" \
-    --database-host "${db_host}:${db_port}" \
-    --database-name "${db_name}" \
-    --database-user "${db_user}" \
-    --database-pass "${db_password}" \
-    --admin-user "${admin_user}" \
-    --admin-pass "${admin_password}" \
+    --database-host "${DB_HOST}:${DB_PORT}" \
+    --database-name "${DB_NAME}" \
+    --database-user "${DB_USER}" \
+    --database-pass "${DB_PASSWORD}" \
+    --admin-user "${ADMIN_USER}" \
+    --admin-pass "${ADMIN_PASSWORD}" \
     --data-dir "/var/www/nextcloud/data"
 
 log_info "Configuring S3 as primary storage..."
 sudo -u www-data php occ app:install files_external
 
 sudo -u www-data php occ files_external:create \
-    --config bucket=${s3_bucket_name} \
-    --config hostname=${s3_endpoint} \
+    --config bucket=${S3_BUCKET_NAME} \
+    --config hostname=${S3_ENDPOINT} \
     --config port=443 \
     --config use_ssl=true \
     --config use_path_style=false \
     --config legacy_auth=false \
-    --config region=${s3_region} \
-    --config key=${s3_access_key} \
-    --config secret=${s3_secret_key} \
+    --config region=${S3_REGION} \
+    --config key=${S3_ACCESS_KEY} \
+    --config secret=${S3_SECRET_KEY} \
     Scaleway_S3 amazons3 -1
 
 log_info "Setting permissions..."
@@ -318,9 +349,9 @@ log_info ""
 log_info "=========================================="
 log_info "Nextcloud installation completed!"
 log_info "=========================================="
-log_info "You can now access Nextcloud at: https://${domain_name}"
-log_info "Admin username: ${admin_user}"
+log_info "You can now access Nextcloud at: https://${DOMAIN_NAME}"
+log_info "Admin username: ${ADMIN_USER}"
 log_info ""
-log_info "Database: ${db_host}:${db_port}/${db_name}"
-log_info "S3 Bucket: ${s3_bucket_name}"
+log_info "Database: ${DB_HOST}:${DB_PORT}/${DB_NAME}"
+log_info "S3 Bucket: ${S3_BUCKET_NAME}"
 log_info "=========================================="

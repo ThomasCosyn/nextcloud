@@ -137,35 +137,3 @@ resource "scaleway_instance_security_group" "db" {
     ip_range = "0.0.0.0/0"
   }
 }
-
-# Module for Nextcloud installation
-module "nextcloud" {
-  source = "./modules/nextcloud"
-
-  instance_public_ip  = scaleway_instance_server.nextcloud.public_ip
-  instance_private_ip = scaleway_instance_server.nextcloud.private_ip
-
-  db_host     = scaleway_rdb_instance.nextcloud_db.load_balancer[0].ip
-  db_port     = scaleway_rdb_instance.nextcloud_db.load_balancer[0].port
-  db_name     = var.db_name
-  db_user     = var.db_user
-  db_password = var.db_password
-
-  s3_bucket_name = var.s3_bucket_name
-  s3_endpoint    = "https://s3.${var.scw_region}.scw.cloud"
-  s3_access_key  = var.scw_access_key
-  s3_secret_key  = var.scw_secret_key
-  s3_region      = var.scw_region
-
-  domain_name    = var.domain_name
-  admin_user     = var.nextcloud_admin_user
-  admin_password = var.nextcloud_admin_password
-
-  email = var.ssl_email
-
-  depends_on = [
-    scaleway_instance_server.nextcloud,
-    scaleway_rdb_instance.nextcloud_db,
-    scaleway_object_bucket.nextcloud
-  ]
-}
