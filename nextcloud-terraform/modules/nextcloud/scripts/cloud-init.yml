@@ -130,9 +130,9 @@ runcmd:
   - echo "ADMIN_USER=${nextcloud_admin_user}" >> /etc/environment
   - echo "ADMIN_PASSWORD=${nextcloud_admin_password}" >> /etc/environment
 
-  # Download the installation script from the Terraform module
-  # Note: This will be manually copied and executed
-  - echo "Cloud-init completed. Please run the installation script manually." > /var/log/cloud-init-complete.log
+  # Download the installation script from GitHub
+  - wget https://raw.githubusercontent.com/ThomasCosyn/nextcloud/main/nextcloud-terraform/modules/nextcloud/scripts/install_nextcloud.sh -O /var/www/install_nextcloud.sh
+  - chmod +x /var/www/install_nextcloud.sh
 
 # Final message
 final_message: |
@@ -145,10 +145,11 @@ final_message: |
   To complete the Nextcloud installation:
   
   1. SSH into the server:
-     ssh -i ~/.ssh/id_rsa ubuntu@${nextcloud_public_ip}
+     ssh -i ~/.ssh/id_rsa ubuntu@<INSTANCE_IP>
+     (Get the IP from: terraform output nextcloud_public_ip)
   
   2. Run the installation script:
-     sudo bash /path/to/install_nextcloud.sh
+     sudo /var/www/install_nextcloud.sh
   
   3. Access Nextcloud at: https://${domain_name}
   
