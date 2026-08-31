@@ -54,11 +54,14 @@ resource "scaleway_instance_security_group" "nextcloud" {
   }
 }
 
+resource "scaleway_instance_ip" "public_ip" {}
+
 # Create a Scaleway instance for Nextcloud
 resource "scaleway_instance_server" "nextcloud" {
   name  = "nextcloud-server"
   type  = var.instance_type
   image = "ubuntu_jammy"
+  ip_id = scaleway_instance_ip.public_ip.id
 
   root_volume {
     size_in_gb = var.root_volume_size
@@ -114,9 +117,7 @@ resource "scaleway_rdb_instance" "nextcloud_db" {
   user_name         = var.db_user
 
   settings = {
-    "postgresql.max_connections" = "100"
-    "postgresql.shared_buffers"  = "256MB"
-    "max_connections"            = "350"
+    "max_connections" = "350"
   }
 
   tags = ["nextcloud", "postgresql", "terraform"]
@@ -133,7 +134,7 @@ resource "scaleway_instance_security_group" "db" {
   inbound_rule {
     action   = "accept"
     protocol = "TCP"
-    port     = 5432
+    port     = scaleway_rdb_instance.nextcloud_db.load_balancer[0].port
     ip_range = "0.0.0.0/0"
   }
 }
