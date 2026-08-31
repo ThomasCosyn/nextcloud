@@ -26,7 +26,7 @@ resource "scaleway_instance_security_group" "nextcloud" {
   name        = "nextcloud-sg"
   description = "Security group for Nextcloud server"
 
-  inbound_default_policy = "drop"
+  inbound_default_policy  = "drop"
   outbound_default_policy = "accept"
 
   inbound_rule {
@@ -56,7 +56,7 @@ resource "scaleway_instance_server" "nextcloud" {
   name  = "nextcloud-server"
   type  = var.instance_type
   image = "ubuntu_jammy"
-  
+
   root_volume {
     size_in_gb = var.root_volume_size
   }
@@ -81,7 +81,7 @@ resource "scaleway_object_bucket" "nextcloud" {
   versioning {
     enabled = true
   }
-  
+
   cors_rule {
     allowed_headers = ["*"]
     allowed_methods = ["GET", "PUT", "POST", "DELETE", "HEAD"]
@@ -99,26 +99,26 @@ resource "scaleway_object_bucket_acl" "nextcloud" {
 
 # PostgreSQL Database (Scaleway Managed Database)
 resource "scaleway_rdb_instance" "nextcloud_db" {
-  name           = "nextcloud-db"
-  node_type      = var.db_instance_type
-  engine         = "PostgreSQL-15"
-  is_ha_cluster  = false
-  disable_backup = false
-  volume_type    = "bssd"
+  name              = "nextcloud-db"
+  node_type         = var.db_instance_type
+  engine            = "PostgreSQL-15"
+  is_ha_cluster     = false
+  disable_backup    = false
+  volume_type       = "bssd"
   volume_size_in_gb = var.db_volume_size
-  region         = var.scw_region
-  
+  region            = var.scw_region
+
   settings = {
     "postgresql.max_connections" = "100"
     "postgresql.shared_buffers"  = "256MB"
   }
-  
+
   init_settings = {
     username = var.db_user
     password = var.db_password
     database = var.db_name
   }
-  
+
   tags = ["nextcloud", "postgresql", "terraform"]
 }
 
@@ -127,7 +127,7 @@ resource "scaleway_instance_security_group" "db" {
   name        = "nextcloud-db-sg"
   description = "Security group for Nextcloud PostgreSQL database"
 
-  inbound_default_policy = "drop"
+  inbound_default_policy  = "drop"
   outbound_default_policy = "accept"
 
   inbound_rule {
