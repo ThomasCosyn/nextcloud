@@ -1,0 +1,42 @@
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+.terraform/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Generated files
+install_nextcloud.sh
+cloud-init.log
+
+# Secrets
+*.pem
+*.key
+secrets.*
+
+# Build output
+tfplan
+tfplan.json
+TERRAFORM_DOCS.md
