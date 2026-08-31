@@ -23,21 +23,20 @@ output "s3_bucket_name" {
   value       = scaleway_object_bucket.nextcloud.name
 }
 
-# Output the S3 bucket endpoint
-output "s3_endpoint" {
-  description = "Endpoint URL for the S3 bucket"
-  value       = "https://s3.${var.scw_region}.scw.cloud"
+# Output the database host
+output "database_host" {
+  description = "Host address of the PostgreSQL database"
+  value       = scaleway_rdb_instance.nextcloud_db.load_balancer[0].ip
+}
+
+# Output the database port
+output "database_port" {
+  description = "Port of the PostgreSQL database"
+  value       = scaleway_rdb_instance.nextcloud_db.load_balancer[0].port
 }
 
 # Output SSH connection command
 output "ssh_connection_command" {
   description = "Command to connect to the Nextcloud server via SSH"
   value       = "ssh -i ~/.ssh/id_rsa ubuntu@${scaleway_instance_server.nextcloud.public_ip}"
-}
-
-# Output Nextcloud admin credentials (sensitive)
-output "nextcloud_admin_credentials" {
-  description = "Nextcloud admin credentials"
-  value       = "Username: ${var.nextcloud_admin_user}, Password: ${var.nextcloud_admin_password}"
-  sensitive   = true
 }

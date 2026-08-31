@@ -15,7 +15,7 @@ variable "scw_zone" {
 variable "instance_type" {
   description = "Scaleway instance type for Nextcloud server"
   type        = string
-  default     = "Start1-S"  # 2 vCPU, 2 Go RAM
+  default     = "Start1-S"
 }
 
 variable "root_volume_size" {
@@ -26,14 +26,14 @@ variable "root_volume_size" {
 
 # SSH Configuration
 variable "ssh_public_key" {
-  description = "Public SSH key for accessing the instance (no password login)"
+  description = "Public SSH key for accessing the instance"
   type        = string
   sensitive   = true
 }
 
 # Domain Configuration
 variable "domain_name" {
-  description = "Domain name for Nextcloud (e.g., nextcloud.example.com)"
+  description = "Domain name for Nextcloud"
   type        = string
 }
 
@@ -87,13 +87,13 @@ variable "nextcloud_admin_password" {
   sensitive   = true
 }
 
-# SSL Configuration (Let's Encrypt)
+# SSL Configuration
 variable "ssl_email" {
   description = "Email address for Let's Encrypt certificate"
   type        = string
 }
 
-# Scaleway Credentials (sensitive, should be provided via environment variables or secrets)
+# Scaleway Credentials
 variable "scw_access_key" {
   description = "Scaleway access key"
   type        = string

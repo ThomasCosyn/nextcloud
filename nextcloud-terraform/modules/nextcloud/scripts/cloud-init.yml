@@ -2,15 +2,12 @@
 
 # Cloud-init configuration for Nextcloud server
 
-# Set hostname
 hostname: nextcloud-server
 fqdn: ${domain_name}
 
-# Update package lists on first boot
 package_update: true
 package_upgrade: true
 
-# Install basic packages
 packages:
   - curl
   - wget
@@ -37,126 +34,47 @@ packages:
   - python3-certbot-nginx
   - awscli
 
-# Create user for Nextcloud (optional, we'll use www-data)
 users:
   - name: nextcloud
     groups: www-data
     sudo: ALL=(ALL) NOPASSWD:ALL
     shell: /bin/bash
 
-# SSH configuration - disable password authentication
 ssh_pwauth: false
 
-# Add SSH key for root user
 ssh_authorized_keys:
   - ${ssh_public_key}
 
-# Write files
-write_files:
-  # Nginx configuration (temporary, will be replaced by installation script)
-  - path: /etc/nginx/sites-available/nextcloud.conf
-    content: |
-      server {
-          listen 80;
-          server_name ${domain_name};
-          root /var/www/nextcloud;
-          index index.php;
-
-          location / {
-              try_files $uri $uri/ =404;
-          }
-
-          location ~ \.php$ {
-              include snippets/fastcgi-php.conf;
-              fastcgi_pass unix:/run/php/php8.1-fpm.sock;
-          }
-      }
-    owner: root:root
-    permissions: '0644'
-
-  # PHP configuration
-  - path: /etc/php/8.1/fpm/pool.d/nextcloud.conf
-    content: |
-      [nextcloud]
-      user = www-data
-      group = www-data
-      listen = /run/php/php8.1-fpm-nextcloud.sock
-      listen.owner = www-data
-      listen.group = www-data
-      pm = dynamic
-      pm.max_children = 10
-      pm.start_servers = 2
-      pm.min_spare_servers = 1
-      pm.max_spare_servers = 3
-    owner: root:root
-    permissions: '0644'
-
-# Run commands on first boot
 runcmd:
-  # Enable PHP FPM
   - systemctl enable php8.1-fpm
   - systemctl start php8.1-fpm
-
-  # Enable Nginx
   - systemctl enable nginx
   - systemctl start nginx
-
-  # Create Nextcloud directory
   - mkdir -p /var/www/nextcloud
   - chown www-data:www-data /var/www/nextcloud
-
-  # Enable Nginx site
-  - ln -sf /etc/nginx/sites-available/nextcloud.conf /etc/nginx/sites-enabled/nextcloud.conf
-  - rm -f /etc/nginx/sites-enabled/default
-  - systemctl restart nginx
-
-  # Create data directory
   - mkdir -p /var/www/nextcloud/data
   - chown www-data:www-data /var/www/nextcloud/data
-
-  # Create log directory
   - mkdir -p /var/log/nextcloud
   - chown www-data:www-data /var/log/nextcloud
 
-  # Write environment variables for installation script
-  - echo "DB_HOST=${db_host}" >> /etc/environment
-  - echo "DB_PORT=${db_port}" >> /etc/environment
-  - echo "DB_NAME=${db_name}" >> /etc/environment
-  - echo "DB_USER=${db_user}" >> /etc/environment
-  - echo "DB_PASSWORD=${db_password}" >> /etc/environment
-  - echo "S3_BUCKET_NAME=${s3_bucket_name}" >> /etc/environment
-  - echo "S3_ENDPOINT=${s3_endpoint}" >> /etc/environment
-  - echo "DOMAIN_NAME=${domain_name}" >> /etc/environment
-  - echo "ADMIN_USER=${nextcloud_admin_user}" >> /etc/environment
-  - echo "ADMIN_PASSWORD=${nextcloud_admin_password}" >> /etc/environment
-
-  # Download the installation script from GitHub
-  - wget https://raw.githubusercontent.com/ThomasCosyn/nextcloud/main/nextcloud-terraform/modules/nextcloud/scripts/install_nextcloud.sh -O /var/www/install_nextcloud.sh
-  - chmod +x /var/www/install_nextcloud.sh
-
-# Final message
 final_message: |
   ==========================================
   Nextcloud Server Initialization Complete!
   ==========================================
   
-  The server has been configured with basic dependencies.
-  
   To complete the Nextcloud installation:
   
-  1. SSH into the server:
+  1. Get the public IP:
+     terraform output nextcloud_public_ip
+  
+  2. SSH into the server:
      ssh -i ~/.ssh/id_rsa ubuntu@<INSTANCE_IP>
-     (Get the IP from: terraform output nextcloud_public_ip)
   
-  2. Run the installation script:
-     sudo /var/www/install_nextcloud.sh
+  3. Download and run the installation script:
+     wget https://raw.githubusercontent.com/ThomasCosyn/nextcloud/main/nextcloud-terraform/modules/nextcloud/scripts/install_nextcloud.sh
+     chmod +x install_nextcloud.sh
+     sudo ./install_nextcloud.sh
   
-  3. Access Nextcloud at: https://${domain_name}
-  
-  Note: The installation script will:
-  - Download and configure Nextcloud
-  - Set up Nginx with SSL (Let's Encrypt)
-  - Configure PostgreSQL connection
-  - Set up S3 storage
+  4. Access Nextcloud at: https://${domain_name}
   
   ==========================================

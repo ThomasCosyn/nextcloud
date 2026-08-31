@@ -3,15 +3,13 @@ scw_region = "fr-par"
 scw_zone   = "fr-par-1"
 
 # Instance Configuration
-instance_type    = "Start1-S"  # 2 vCPU, 2 Go RAM
+instance_type    = "Start1-S"
 root_volume_size = 50
 
 # SSH Configuration
-# Replace with your public SSH key
 ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQ..."
 
 # Domain Configuration
-# Replace with your domain name
 domain_name = "nextcloud.yourdomain.com"
 
 # Database Configuration
@@ -19,20 +17,16 @@ db_instance_type = "DB-DEV-S"
 db_volume_size   = 20
 db_name          = "nextcloud_db"
 db_user          = "nextcloud_user"
-# db_password will be provided via environment variable or secret
 
 # S3 Bucket Configuration
-# Replace with your unique bucket name
 s3_bucket_name = "nextcloud-files-bucket-unique-name"
 
 # Nextcloud Admin Configuration
-nextcloud_admin_user     = "admin"
-# nextcloud_admin_password will be provided via environment variable or secret
+nextcloud_admin_user = "admin"
 
-# SSL Configuration (Let's Encrypt)
+# SSL Configuration
 ssl_email = "admin@yourdomain.com"
 
-# Scaleway Credentials
-# These should be provided via environment variables or GitHub Secrets
+# Scaleway Credentials (use environment variables or GitHub Secrets)
 # scw_access_key = "your-scaleway-access-key"
 # scw_secret_key = "your-scaleway-secret-key"

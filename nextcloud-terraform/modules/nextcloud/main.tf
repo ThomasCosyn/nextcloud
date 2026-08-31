@@ -1,12 +1,11 @@
 # Nextcloud module for manual installation on Scaleway
-# This module handles the provisioning scripts for Nextcloud
 
 # Local file for the installation script
 resource "local_file" "nextcloud_install_script" {
   filename = "${path.module}/scripts/install_nextcloud.sh"
   content = templatefile("${path.module}/scripts/install_nextcloud.tpl", {
     db_host     = var.db_host
-    db_port     = tostring(var.db_port)  # Convert number to string
+    db_port     = tostring(var.db_port)
     db_name     = var.db_name
     db_user     = var.db_user
     db_password = var.db_password
@@ -19,15 +18,6 @@ resource "local_file" "nextcloud_install_script" {
     admin_user    = var.admin_user
     admin_password = var.admin_password
     email         = var.email
-    instance_public_ip = var.instance_public_ip  # Fixed: use correct variable name
+    instance_public_ip = var.instance_public_ip
   })
-}
-
-# Null resource to trigger the installation (manual execution)
-# Note: Since user wants manual execution, this is just a placeholder
-# The actual installation will be done manually via SSH
-resource "null_resource" "nextcloud_installation" {
-  triggers = {
-    script_content = local_file.nextcloud_install_script.content
-  }
 }
