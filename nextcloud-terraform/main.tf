@@ -193,8 +193,8 @@ module "nextcloud" {
   source = "./modules/nextcloud"
 
   # Instance information
-  instance_public_ip  = scaleway_instance_server.nextcloud.public_ip
-  instance_private_ip = scaleway_instance_server.nextcloud.private_ip
+  instance_public_ip_range  = scaleway_instance_server.nextcloud.public_ip
+  instance_private_ip_range = scaleway_instance_server.nextcloud.private_ip
 
   # Database information
   db_host     = scaleway_rdb_instance.nextcloud_db.load_balancer[0].hostname
