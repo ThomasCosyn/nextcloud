@@ -17,13 +17,17 @@ provider "scaleway" {
 
 # Create a Scaleway instance for Nextcloud
 resource "scaleway_instance_server" "nextcloud" {
-  name        = "nextcloud-server"
-  type        = var.instance_type
-  image       = "ubuntu_jammy" # Ubuntu 22.04
-  enable_ipv6 = false
+  name              = "nextcloud-server"
+  type              = var.instance_type
+  image             = "ubuntu_jammy"  # Ubuntu 22.04
+  enable_ipv6       = false
   root_volume {
     size_in_gb = var.root_volume_size
+    type       = "bssd"  # SSD
   }
+
+  # SSH key only (no password)
+  ssh_key_ids = [scaleway_account_ssh_key.main.id]
 
   # Security group for SSH, HTTP, HTTPS
   security_group_id = scaleway_instance_security_group.nextcloud.id
@@ -86,7 +90,7 @@ resource "scaleway_instance_security_group" "nextcloud" {
   # Allow outbound traffic
   outbound_rule {
     action   = "accept"
-    protocol = "ANY" # All protocols
+    protocol = "ANY"  # All protocols
     ip_range = "0.0.0.0/0"
   }
 }
@@ -100,7 +104,7 @@ resource "scaleway_object_bucket" "nextcloud" {
   versioning {
     enabled = true
   }
-
+  
   # CORS configuration for Nextcloud
   cors_rule {
     allowed_headers = ["*"]
@@ -118,12 +122,19 @@ resource "scaleway_object_bucket_policy" "nextcloud" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect = "Allow"
+        Effect    = "Allow"
+        Principal = {
+          AWS = [scaleway_object_bucket.nextcloud.arn]
+        }
         Action = [
           "s3:GetObject",
           "s3:PutObject",
           "s3:DeleteObject",
           "s3:ListBucket"
+        ]
+        Resource = [
+          scaleway_object_bucket.nextcloud.arn,
+          "${scaleway_object_bucket.nextcloud.arn}/*"
         ]
       }
     ]
@@ -132,27 +143,27 @@ resource "scaleway_object_bucket_policy" "nextcloud" {
 
 # PostgreSQL Database (Scaleway Managed Database)
 resource "scaleway_rdb_instance" "nextcloud_db" {
-  name              = "nextcloud-db"
-  node_type         = var.db_instance_type
-  engine            = "PostgreSQL-15"
-  is_ha_cluster     = false
-  disable_backup    = false
-  volume_type       = "bssd"
+  name           = "nextcloud-db"
+  node_type      = var.db_instance_type
+  engine         = "PostgreSQL-15"
+  is_ha_cluster  = false
+  disable_backup = false
+  volume_type    = "bssd"
   volume_size_in_gb = var.db_volume_size
-  region            = var.scw_region
-
+  region         = var.scw_region
+  
   settings = {
     "postgresql.max_connections" = "100"
     "postgresql.shared_buffers"  = "256MB"
   }
-
+  
   # Database initialization
   init_settings = {
     username = var.db_user
     password = var.db_password
     database = var.db_name
   }
-
+  
   tags = ["nextcloud", "postgresql", "terraform"]
 }
 
@@ -176,26 +187,6 @@ resource "scaleway_instance_security_group" "db" {
     ip_range = "0.0.0.0/0"
   }
 }
-
-# DNS Record for the domain (optional, if using Scaleway DNS)
-# Uncomment and configure if you use Scaleway DNS
-/*
-resource "scaleway_domain_record" "nextcloud" {
-  domain = var.domain_name
-  type   = "A"
-  name   = "@"
-  data   = scaleway_instance_server.nextcloud.public_ip
-  ttl    = 300
-}
-
-resource "scaleway_domain_record" "nextcloud_wildcard" {
-  domain = var.domain_name
-  type   = "A"
-  name   = "*"
-  data   = scaleway_instance_server.nextcloud.public_ip
-  ttl    = 300
-}
-*/
 
 # Module for Nextcloud installation (reusable)
 module "nextcloud" {

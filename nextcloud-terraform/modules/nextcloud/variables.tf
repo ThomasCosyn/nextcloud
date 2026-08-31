@@ -1,10 +1,10 @@
 # Instance information
-variable "instance_public_ip_range" {
+variable "instance_public_ip" {
   description = "Public IP address of the instance"
   type        = string
 }
 
-variable "instance_private_ip_range" {
+variable "instance_private_ip" {
   description = "Private IP address of the instance"
   type        = string
 }
