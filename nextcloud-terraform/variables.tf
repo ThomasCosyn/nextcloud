@@ -31,6 +31,18 @@ variable "ssh_public_key" {
   sensitive   = true
 }
 
+variable "ssh_allowed_ip_range" {
+  description = "CIDR IP range allowed to reach SSH (port 22). Defaults to anywhere; restrict to your IP for better security (e.g. 203.0.113.5/32)."
+  type        = string
+  default     = "0.0.0.0/0"
+}
+
+variable "db_allowed_ip_ranges" {
+  description = "Additional CIDR IP ranges allowed to reach the database (operator/admin IPs). Leave empty to restrict DB access to the Nextcloud server only."
+  type        = list(string)
+  default     = []
+}
+
 # Domain Configuration
 variable "domain_name" {
   description = "Domain name for Nextcloud"

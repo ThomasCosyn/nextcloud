@@ -36,7 +36,7 @@ resource "scaleway_instance_security_group" "nextcloud" {
     action   = "accept"
     protocol = "TCP"
     port     = 22
-    ip_range = "0.0.0.0/0"
+    ip_range = var.ssh_allowed_ip_range
   }
 
   inbound_rule {
@@ -123,18 +123,23 @@ resource "scaleway_rdb_instance" "nextcloud_db" {
   tags = ["nextcloud", "postgresql", "terraform"]
 }
 
-# Security group for PostgreSQL database
-resource "scaleway_instance_security_group" "db" {
-  name        = "nextcloud-db-sg"
-  description = "Security group for Nextcloud PostgreSQL database"
+# Restrict database access to the Nextcloud server's public IP only.
+# The database is reachable on its load balancer port; only the Nextcloud
+# instance (and optionally the operator) may connect to it.
+resource "scaleway_rdb_acl" "nextcloud_db" {
+  instance_id = scaleway_rdb_instance.nextcloud_db.id
+  region      = var.scw_region
 
-  inbound_default_policy  = "drop"
-  outbound_default_policy = "accept"
+  acl_rules {
+    ip          = "${scaleway_instance_server.nextcloud.public_ips.0}/32"
+    description = "Nextcloud server"
+  }
 
-  inbound_rule {
-    action   = "accept"
-    protocol = "TCP"
-    port     = scaleway_rdb_instance.nextcloud_db.load_balancer[0].port
-    ip_range = "0.0.0.0/0"
+  dynamic "acl_rules" {
+    for_each = var.db_allowed_ip_ranges
+    content {
+      ip          = acl_rules.value
+      description = "Operator"
+    }
   }
 }
