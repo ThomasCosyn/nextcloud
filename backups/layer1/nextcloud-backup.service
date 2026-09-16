@@ -1,0 +1,18 @@
+[Unit]
+Description=Nextcloud daily backup (Layer 1, independent of Terraform)
+Documentation=file:///usr/local/sbin/nextcloud-backup.sh
+Wants=network-online.target
+After=network-online.target postgresql.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/nextcloud-backup.sh
+User=root
+Group=root
+# config file holds DB + S3 secrets, keep it readable only by root
+Environment=NEXTCLOUD_BACKUP_CONFIG=/etc/nextcloud-backup/nextcloud-backup.env
+# protect the secret material
+ProtectSystem=full
+ReadWritePaths=/var/backups/nextcloud /var/log /var/lock
+PrivateTmp=true
+NoNewPrivileges=true
