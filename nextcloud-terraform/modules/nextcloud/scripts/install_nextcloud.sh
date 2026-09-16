@@ -26,7 +26,8 @@ log_info "Detected public IP: $PUBLIC_IP"
 
 # Ask for required variables
 read -p "Domain name (e.g., nextcloud.example.com): " DOMAIN_NAME
-read -p "Database host (from terraform output): " DB_HOST
+read -p "Database host (IP from terraform output): " DB_HOST
+read -p "Database TLS hostname (for verify-full, e.g. rw-<id>.rdb.fr-par.scw.cloud) [leave empty to skip TLS]: " DB_TLS_HOST
 read -p "Database port (default 5432): " DB_PORT
 DB_PORT=${DB_PORT:-5432}
 read -p "Database name (default nextcloud_db): " DB_NAME
@@ -307,23 +308,43 @@ EOF
 chmod 644 /etc/cron.d/certbot
 
 log_info "Configuring database connection..."
+DB_SSL_CONFIG=""
+DB_CONNECT_HOST="${DB_HOST}:${DB_PORT}"
+if [ -n "${DB_TLS_HOST}" ]; then
+    log_info "Downloading Scaleway RDB CA certificate for TLS verification..."
+    DB_CA_PATH="/var/www/nextcloud/config/scaleway-rdb-ca.pem"
+    curl -fsSL https://dl.scaleway.com/rdb-ca-prod-${S3_REGION}.pem -o "${DB_CA_PATH}" || true
+    if [ ! -s "${DB_CA_PATH}" ]; then
+        log_warn "Could not download CA automatically. Paste the RDB CA certificate (end with a blank line):"
+        : > "${DB_CA_PATH}"
+        while IFS= read -r line; do
+            [ -z "${line}" ] && break
+            echo "${line}" >> "${DB_CA_PATH}"
+        done
+    fi
+    chown www-data:www-data "${DB_CA_PATH}"
+    chmod 644 "${DB_CA_PATH}"
+    DB_SSL_CONFIG="  'dbsslmode' => 'verify-full',  'dbsslrootcert' => '${DB_CA_PATH}',"
+    DB_CONNECT_HOST="${DB_TLS_HOST}:${DB_PORT}"
+fi
 cat > /var/www/nextcloud/config/config.php << PHPEOF
 <?php
 \$CONFIG = array (
-  'instanceid' => 'nextcloud-instance',
+  'instanceid' => '$(openssl rand -hex 8)',
   'passwordsalt' => '$(openssl rand -base64 32)',
   'secret' => '$(openssl rand -base64 32)',
   'trusted_domains' => array (0 => '${DOMAIN_NAME}'),
   'datadirectory' => '/var/www/nextcloud/data',
   'overwrite.cli.url' => 'https://${DOMAIN_NAME}',
+  'overwriteprotocol' => 'https',
   'dbtype' => 'pgsql',
   'version' => '28.0.0',
   'dbname' => '${DB_NAME}',
-  'dbhost' => '${DB_HOST}:${DB_PORT}',
+  'dbhost' => '${DB_CONNECT_HOST}',
   'dbport' => '${DB_PORT}',
   'dbtableprefix' => 'oc_',
   'dbuser' => '${DB_USER}',
-  'dbpassword' => '${DB_PASSWORD}',
+  'dbpassword' => '${DB_PASSWORD}',${DB_SSL_CONFIG}
   'installed' => false,
 );
 PHPEOF
@@ -335,7 +356,7 @@ cd /var/www/nextcloud
 
 sudo -u www-data php8.3 occ maintenance:install \
     --database "pgsql" \
-    --database-host "${DB_HOST}:${DB_PORT}" \
+    --database-host "${DB_CONNECT_HOST}" \
     --database-name "${DB_NAME}" \
     --database-user "${DB_USER}" \
     --database-pass "${DB_PASSWORD}" \
