@@ -15,20 +15,20 @@ packages:
   - unzip
   - jq
   - nginx
-  - php8.1-fpm
-  - php8.1-common
-  - php8.1-gd
-  - php8.1-mysql
-  - php8.1-pgsql
-  - php8.1-curl
-  - php8.1-mbstring
-  - php8.1-xml
-  - php8.1-zip
-  - php8.1-intl
-  - php8.1-imagick
-  - php8.1-ldap
-  - php8.1-gmp
-  - php8.1-bcmath
+  - php8.3-fpm
+  - php8.3-common
+  - php8.3-gd
+  - php8.3-mysql
+  - php8.3-pgsql
+  - php8.3-curl
+  - php8.3-mbstring
+  - php8.3-xml
+  - php8.3-zip
+  - php8.3-intl
+  - php8.3-imagick
+  - php8.3-ldap
+  - php8.3-gmp
+  - php8.3-bcmath
   - postgresql-client
   - certbot
   - python3-certbot-nginx
@@ -46,8 +46,10 @@ ssh_authorized_keys:
   - ${ssh_public_key}
 
 runcmd:
-  - systemctl enable php8.1-fpm
-  - systemctl start php8.1-fpm
+  - add-apt-repository -y ppa:ondrej/php
+  - apt-get update -y
+  - systemctl enable php8.3-fpm
+  - systemctl start php8.3-fpm
   - systemctl enable nginx
   - systemctl start nginx
   - mkdir -p /var/www/nextcloud
