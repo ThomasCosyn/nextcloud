@@ -62,19 +62,24 @@ if dpkg -l | grep -q '^ii  apache2 '; then
     apt-get autoremove -y
 fi
 
+log_info "Adding ondrej/php PPA for PHP 8.3..."
+apt-get install -y software-properties-common
+add-apt-repository -y ppa:ondrej/php
+apt-get update -y
+
 log_info "Installing required packages..."
-apt-get install -y nginx php8.1-fpm php8.1-gd php8.1-mysql php8.1-pgsql \
-    php8.1-curl php8.1-mbstring php8.1-xml php8.1-zip php8.1-intl \
-    php8.1-imagick php8.1-ldap php8.1-gmp php8.1-bcmath php8.1-cli \
-    php8.1-common postgresql-client certbot python3-certbot-nginx \
+apt-get install -y nginx php8.3-fpm php8.3-gd php8.3-mysql php8.3-pgsql \
+    php8.3-curl php8.3-mbstring php8.3-xml php8.3-zip php8.3-intl \
+    php8.3-imagick php8.3-ldap php8.3-gmp php8.3-bcmath php8.3-cli \
+    php8.3-common postgresql-client certbot python3-certbot-nginx \
     curl wget git unzip jq awscli
 
 log_info "Configuring PHP..."
-cat > /etc/php/8.1/fpm/pool.d/nextcloud.conf << 'EOF'
+cat > /etc/php/8.3/fpm/pool.d/nextcloud.conf << 'EOF'
 [nextcloud]
 user = www-data
 group = www-data
-listen = /run/php/php8.1-fpm-nextcloud.sock
+listen = /run/php/php8.3-fpm-nextcloud.sock
 listen.owner = www-data
 listen.group = www-data
 listen.mode = 0660
@@ -87,7 +92,7 @@ php_admin_value[error_log] = /var/log/php-nextcloud.log
 php_admin_flag[log_errors] = on
 EOF
 
-cat >> /etc/php/8.1/fpm/php.ini << 'EOF'
+cat >> /etc/php/8.3/fpm/php.ini << 'EOF'
 memory_limit = 512M
 upload_max_filesize = 512M
 post_max_size = 512M
@@ -104,7 +109,7 @@ opcache.save_comments=1
 opcache.revalidate_freq=1
 EOF
 
-systemctl restart php8.1-fpm
+systemctl restart php8.3-fpm
 
 log_info "Configuring Nginx..."
 cat > /etc/nginx/sites-available/nextcloud.conf << 'NGINXEOF'
@@ -152,7 +157,7 @@ server {
 
     location ~ \.php(?:$|/) {
         include snippets/fastcgi-php.conf;
-        fastcgi_pass unix:/run/php/php8.1-fpm-nextcloud.sock;
+        fastcgi_pass unix:/run/php/php8.3-fpm-nextcloud.sock;
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         fastcgi_param PATH_INFO $fastcgi_path_info;
         fastcgi_param HTTPS on;
@@ -263,7 +268,7 @@ server {
 
     location ~ \.php(?:$|/) {
         include snippets/fastcgi-php.conf;
-        fastcgi_pass unix:/run/php/php8.1-fpm-nextcloud.sock;
+        fastcgi_pass unix:/run/php/php8.3-fpm-nextcloud.sock;
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         fastcgi_param PATH_INFO $fastcgi_path_info;
         fastcgi_param HTTPS on;
@@ -352,7 +357,7 @@ chown -R www-data:www-data /var/www/nextcloud
 chmod -R 755 /var/www/nextcloud
 
 log_info "Adding Nextcloud cron job..."
-echo "*/5 * * * * www-data php -f /var/www/nextcloud/cron.php" > /etc/cron.d/nextcloud
+echo "*/5 * * * * www-data php8.3 -f /var/www/nextcloud/cron.php" > /etc/cron.d/nextcloud
 chmod 644 /etc/cron.d/nextcloud
 
 log_info "Cleaning up..."
