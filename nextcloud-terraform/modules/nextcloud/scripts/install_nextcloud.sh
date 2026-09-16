@@ -52,6 +52,16 @@ log_info "Updating system packages..."
 apt-get update -y
 apt-get upgrade -y
 
+log_info "Removing Apache if present (to avoid port 80 conflict with Nginx)..."
+if systemctl list-unit-files | grep -q '^apache2\.service'; then
+    systemctl stop apache2 || true
+    systemctl disable apache2 || true
+fi
+if dpkg -l | grep -q '^ii  apache2 '; then
+    apt-get purge -y apache2 apache2-bin apache2-data apache2-utils
+    apt-get autoremove -y
+fi
+
 log_info "Installing required packages..."
 apt-get install -y nginx php8.1-fpm php8.1-gd php8.1-mysql php8.1-pgsql \
     php8.1-curl php8.1-mbstring php8.1-xml php8.1-zip php8.1-intl \
@@ -339,7 +349,9 @@ log_info "Setting permissions..."
 chown -R www-data:www-data /var/www/nextcloud
 chmod -R 755 /var/www/nextcloud
 
-a2enmod headers rewrite
+log_info "Adding Nextcloud cron job..."
+echo "*/5 * * * * www-data php -f /var/www/nextcloud/cron.php" > /etc/cron.d/nextcloud
+chmod 644 /etc/cron.d/nextcloud
 
 log_info "Cleaning up..."
 apt-get autoremove -y
