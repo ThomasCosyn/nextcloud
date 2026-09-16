@@ -174,6 +174,7 @@ server {
     }
 }
 NGINXEOF
+sed -i "s#\${DOMAIN_NAME}#${DOMAIN_NAME}#g" /etc/nginx/sites-available/nextcloud.conf
 
 ln -sf /etc/nginx/sites-available/nextcloud.conf /etc/nginx/sites-enabled/nextcloud.conf
 rm -f /etc/nginx/sites-enabled/default
@@ -284,6 +285,7 @@ server {
     }
 }
 NGINXEOF
+sed -i "s#\${DOMAIN_NAME}#${DOMAIN_NAME}#g" /etc/nginx/sites-available/nextcloud.conf
 
 nginx -t
 systemctl restart nginx
