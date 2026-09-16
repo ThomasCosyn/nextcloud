@@ -152,8 +152,11 @@ server {
     rewrite ^/webdav(.*)$ /remote.php/dav/$1 redirect;
 
     location / {
-        try_files $uri $uri/ =404;
+        rewrite ^ /index.php$request_uri;
     }
+
+    location ~ ^/(?:build|tests|config|lib|3rdparty|templates)/(?:$|/)  { return 404; }
+    location ~ ^/(?:\.|autotest|occ|issue|indie|db_|console) { return 404; }
 
     location ~ \.php(?:$|/) {
         include snippets/fastcgi-php.conf;
@@ -263,8 +266,11 @@ server {
     rewrite ^/webdav(.*)$ /remote.php/dav/$1 redirect;
 
     location / {
-        try_files $uri $uri/ =404;
+        rewrite ^ /index.php$request_uri;
     }
+
+    location ~ ^/(?:build|tests|config|lib|3rdparty|templates)/(?:$|/)  { return 404; }
+    location ~ ^/(?:\.|autotest|occ|issue|indie|db_|console) { return 404; }
 
     location ~ \.php(?:$|/) {
         include snippets/fastcgi-php.conf;
