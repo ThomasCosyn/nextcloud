@@ -327,7 +327,7 @@ chown www-data:www-data /var/www/nextcloud/config/config.php
 log_info "Installing Nextcloud..."
 cd /var/www/nextcloud
 
-sudo -u www-data php occ maintenance:install \
+sudo -u www-data php8.3 occ maintenance:install \
     --database "pgsql" \
     --database-host "${DB_HOST}:${DB_PORT}" \
     --database-name "${DB_NAME}" \
@@ -338,9 +338,9 @@ sudo -u www-data php occ maintenance:install \
     --data-dir "/var/www/nextcloud/data"
 
 log_info "Configuring S3 as primary storage..."
-sudo -u www-data php occ app:install files_external
+sudo -u www-data php8.3 occ app:install files_external
 
-sudo -u www-data php occ files_external:create \
+sudo -u www-data php8.3 occ files_external:create \
     --config bucket=${S3_BUCKET_NAME} \
     --config hostname=${S3_ENDPOINT} \
     --config port=443 \
