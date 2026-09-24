@@ -1,0 +1,13 @@
+- configurer calendrier
+- vérifier montage des fichiers
+- sécurisation supplémentaire
+- connexion téléphone clara
+- backups
+- migrer ggcloud
+- configurer contacts
+- 2FA
+- bug README
+- synchroniser notes
+- comprendre pourquoi parfois le client de synchro ubuntu bug
+- ignorer les .venv python dans la synchro
+- fin ops
