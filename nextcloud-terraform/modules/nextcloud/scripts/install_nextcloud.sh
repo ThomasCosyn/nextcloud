@@ -129,7 +129,10 @@ server {
     root /var/www/nextcloud;
     index index.php index.html index.htm;
 
-    location ~ /\.(?!well-known) {
+    client_max_body_size 0;
+    client_body_timeout 3600s;
+
+    location ~ ^/\.(?!well-known) {
         deny all;
         access_log off;
         log_not_found off;
@@ -165,6 +168,8 @@ server {
         fastcgi_param front_controller_active true;
         fastcgi_intercept_errors on;
         fastcgi_request_buffering off;
+        fastcgi_read_timeout 600s;
+        fastcgi_send_timeout 600s;
     }
 
     location ~* \.(?:css|js|woff2?|svg|gif|map|json)$ {
@@ -240,7 +245,10 @@ server {
     root /var/www/nextcloud;
     index index.php index.html index.htm;
 
-    location ~ /\.(?!well-known) {
+    client_max_body_size 0;
+    client_body_timeout 3600s;
+
+    location ~ ^/\.(?!well-known) {
         deny all;
         access_log off;
         log_not_found off;
@@ -276,6 +284,8 @@ server {
         fastcgi_param front_controller_active true;
         fastcgi_intercept_errors on;
         fastcgi_request_buffering off;
+        fastcgi_read_timeout 600s;
+        fastcgi_send_timeout 600s;
     }
 
     location ~* \.(?:css|js|woff2?|svg|gif|map|json)$ {
