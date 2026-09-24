@@ -310,6 +310,10 @@ cat > /etc/cron.d/certbot << EOF
 EOF
 chmod 644 /etc/cron.d/certbot
 
+S3_ENDPOINT_HOST="${S3_ENDPOINT#http://}"
+S3_ENDPOINT_HOST="${S3_ENDPOINT_HOST#https://}"
+S3_ENDPOINT_HOST="${S3_ENDPOINT_HOST%/}"
+
 log_info "Configuring database connection..."
 cat > /var/www/nextcloud/config/config.php << PHPEOF
 <?php
@@ -329,6 +333,20 @@ cat > /var/www/nextcloud/config/config.php << PHPEOF
   'dbuser' => '${DB_USER}',
   'dbpassword' => '${DB_PASSWORD}',
   'installed' => false,
+  'objectstore' => array (
+    'class' => 'OC\\Files\\ObjectStore\\S3',
+    'arguments' => array (
+      'bucket' => '${S3_BUCKET_NAME}',
+      'autocreate' => false,
+      'hostname' => '${S3_ENDPOINT_HOST}',
+      'port' => 443,
+      'use_ssl' => true,
+      'region' => '${S3_REGION}',
+      'legacy_auth' => false,
+      'key' => '${S3_ACCESS_KEY}',
+      'secret' => '${S3_SECRET_KEY}',
+    ),
+  ),
 );
 PHPEOF
 
@@ -347,20 +365,7 @@ sudo -u www-data php occ maintenance:install \
     --admin-pass "${ADMIN_PASSWORD}" \
     --data-dir "/var/www/nextcloud/data"
 
-log_info "Configuring S3 as primary storage..."
-sudo -u www-data php occ app:install files_external
-
-sudo -u www-data php occ files_external:create \
-    --config bucket=${S3_BUCKET_NAME} \
-    --config hostname=${S3_ENDPOINT} \
-    --config port=443 \
-    --config use_ssl=true \
-    --config use_path_style=false \
-    --config legacy_auth=false \
-    --config region=${S3_REGION} \
-    --config key=${S3_ACCESS_KEY} \
-    --config secret=${S3_SECRET_KEY} \
-    Scaleway_S3 amazons3 -1
+log_info "S3 as primary object store: configured in config.php (objectstore)"
 
 log_info "Setting permissions..."
 chown -R www-data:www-data /var/www/nextcloud

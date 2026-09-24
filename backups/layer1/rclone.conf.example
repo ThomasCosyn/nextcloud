@@ -1,0 +1,29 @@
+; rclone configuration for Nextcloud Layer 1 backup
+; Install at /root/.config/rclone/rclone.conf with chmod 0600.
+;
+; Two remotes pointing at TWO DIFFERENT Scaleway projects:
+;   - scaleway-src    : the primary bucket currently used by Nextcloud
+;                       (read-only use here, the credentials may be the ones
+;                        Nextcloud already uses, or a dedicated read-only key)
+;   - scaleway-backup : the SECOND bucket created BY HAND in a SEPARATE Scaleway
+;                       project, OUTSIDE Terraform. Use a dedicated IAM key.
+
+[scaleway-src]
+type = s3
+provider = Scaleway
+env_auth = false
+access_key_id = SCALEWAY_PROJECT_A_ACCESS_KEY
+secret_access_key = SCALEWAY_PROJECT_A_SECRET_KEY
+region = fr-par
+endpoint = s3.fr-par.scw.cloud
+location_constraint =
+
+[scaleway-backup]
+type = s3
+provider = Scaleway
+env_auth = false
+access_key_id = SCALEWAY_PROJECT_B_ACCESS_KEY
+secret_access_key = SCALEWAY_PROJECT_B_SECRET_KEY
+region = fr-par
+endpoint = s3.fr-par.scw.cloud
+location_constraint =
