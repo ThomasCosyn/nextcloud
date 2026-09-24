@@ -132,7 +132,7 @@ server {
     client_max_body_size 0;
     client_body_timeout 3600s;
 
-    location ~ /\.(?!well-known) {
+    location ~ ^/\.(?!well-known) {
         deny all;
         access_log off;
         log_not_found off;
@@ -248,7 +248,7 @@ server {
     client_max_body_size 0;
     client_body_timeout 3600s;
 
-    location ~ /\.(?!well-known) {
+    location ~ ^/\.(?!well-known) {
         deny all;
         access_log off;
         log_not_found off;
