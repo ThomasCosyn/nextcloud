@@ -35,5 +35,6 @@ jobs:
           TF_VAR_scw_secret_key: ${{ secrets.SCW_SECRET_KEY }}
           TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
           TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+          TF_VAR_devoirsfaits_db_password: ${{ secrets.DEVOIRSFAITS_DB_PASSWORD }}
           TF_VAR_nextcloud_admin_password: ${{ secrets.NEXTCLOUD_ADMIN_PASSWORD }}
           TF_VAR_ssl_email: ${{ secrets.SSL_EMAIL }}

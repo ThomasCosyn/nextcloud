@@ -68,6 +68,12 @@ variable "db_password" {
   sensitive   = true
 }
 
+variable "devoirsfaits_db_password" {
+  description = "Database password for the devoirsfaits user"
+  type        = string
+  sensitive   = true
+}
+
 # S3 Bucket Configuration
 variable "s3_bucket_name" {
   description = "Name of the S3 bucket for Nextcloud files"
