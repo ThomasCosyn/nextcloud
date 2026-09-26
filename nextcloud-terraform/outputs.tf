@@ -22,3 +22,10 @@ output "s3_bucket_name" {
   description = "Name of the S3 bucket for Nextcloud files"
   value       = scaleway_object_bucket.nextcloud.name
 }
+
+# Output the devoirsfaits database connection URL
+output "devoirsfaits_database_url" {
+  description = "PostgreSQL connection URL for the devoirsfaits database"
+  value       = "postgresql://${scaleway_rdb_user.devoirsfaits.name}:${var.devoirsfaits_db_password}@${scaleway_rdb_instance.nextcloud_db.load_balancer[0].ip}:${scaleway_rdb_instance.nextcloud_db.load_balancer[0].port}/${scaleway_rdb_database.devoirsfaits.name}"
+  sensitive   = true
+}
