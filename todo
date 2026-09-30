@@ -4,7 +4,6 @@
 - backups
 - migrer ggcloud
 - configurer contacts
-- 2FA
 - bug README
 - ignorer les .venv python dans la synchro
 - fin ops
