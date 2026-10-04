@@ -123,6 +123,25 @@ resource "scaleway_rdb_instance" "nextcloud_db" {
   tags = ["nextcloud", "postgresql", "terraform"]
 }
 
+# Devoirsfaits database on the existing Nextcloud PostgreSQL instance
+resource "scaleway_rdb_database" "devoirsfaits" {
+  instance_id = scaleway_rdb_instance.nextcloud_db.id
+  name        = "devoirsfaits"
+}
+
+resource "scaleway_rdb_user" "devoirsfaits" {
+  instance_id = scaleway_rdb_instance.nextcloud_db.id
+  name        = "devoirsfaits"
+  password    = var.devoirsfaits_db_password
+}
+
+resource "scaleway_rdb_privilege" "devoirsfaits" {
+  instance_id   = scaleway_rdb_instance.nextcloud_db.id
+  user_name     = scaleway_rdb_user.devoirsfaits.name
+  database_name = scaleway_rdb_database.devoirsfaits.name
+  permission    = "readwrite"
+}
+
 # Security group for PostgreSQL database
 resource "scaleway_instance_security_group" "db" {
   name        = "nextcloud-db-sg"
