@@ -1,0 +1,19 @@
+; rclone additions for Layer 2 (USB key / external drive)
+; Append to /root/.config/rclone/rclone.conf (alongside the Layer 1 remotes).
+;
+; `usb-crypt` is a rclone `crypt` remote that wraps a LOCAL path on the mounted
+; USB key. Files are encrypted+chunked client-side before being written to the
+; key, so the key is useless if lost without the crypt password.
+
+[usb-crypt]
+type = crypt
+remote = /media/nextcloud-usb/backup
+filename_encryption = standard
+directory_name_encryption = true
+password = OBFUSCATED_RCLONE_PASSWORD
+password2 = OBFUSCATED_RCLONE_SALT
+
+; Tip: generate the obfuscated values with:
+;   rclone obscure "your-password"
+;   rclone obscure "your-salt"
+; Never store the plaintext password anywhere.
