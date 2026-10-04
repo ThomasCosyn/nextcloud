@@ -139,7 +139,7 @@ resource "scaleway_rdb_privilege" "devoirsfaits" {
   instance_id   = scaleway_rdb_instance.nextcloud_db.id
   user_name     = scaleway_rdb_user.devoirsfaits.name
   database_name = scaleway_rdb_database.devoirsfaits.name
-  permission    = "readwrite"
+  permission    = "all"
 }
 
 # Security group for PostgreSQL database
