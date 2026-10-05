@@ -1,9 +1,7 @@
-- configurer calendrier
 - sécurisation supplémentaire
 - connexion téléphone clara
 - backups
 - migrer ggcloud
-- configurer contacts
 - bug README
 - ignorer les .venv python dans la synchro
 - fin ops
