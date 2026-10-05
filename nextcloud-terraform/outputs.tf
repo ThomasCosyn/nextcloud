@@ -23,9 +23,19 @@ output "s3_bucket_name" {
   value       = scaleway_object_bucket.nextcloud.name
 }
 
-# Output the devoirsfaits database connection URL
+# Output the devoirsfaits database connection URL (public endpoint, for local CLI/debug)
 output "devoirsfaits_database_url" {
   description = "PostgreSQL connection URL for the devoirsfaits database"
   value       = "postgresql://${scaleway_rdb_user.devoirsfaits.name}:${var.devoirsfaits_db_password}@${scaleway_rdb_instance.nextcloud_db.load_balancer[0].ip}:${scaleway_rdb_instance.nextcloud_db.load_balancer[0].port}/${scaleway_rdb_database.devoirsfaits.name}"
   sensitive   = true
+}
+
+output "devoirsfaits_registry_endpoint" {
+  description = "Container registry endpoint for the devoirsfaits image"
+  value       = module.devoirsfaits.registry_endpoint
+}
+
+output "devoirsfaits_container_url" {
+  description = "Public URL of the devoirsfaits serverless container"
+  value       = module.devoirsfaits.container_url
 }

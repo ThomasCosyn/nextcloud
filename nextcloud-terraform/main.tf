@@ -120,7 +120,22 @@ resource "scaleway_rdb_instance" "nextcloud_db" {
     "max_connections" = "350"
   }
 
+  # Endpoint privé pour le container devoirsfaits (l'endpoint public est conservé)
+  private_network {
+    pn_id       = scaleway_vpc_private_network.devoirsfaits.id
+    enable_ipam = true
+  }
+
+  # Conserver l'endpoint public (load balancer) en plus du Private Network
+  load_balancer {}
+
   tags = ["nextcloud", "postgresql", "terraform"]
+}
+
+# Private Network partagé : RDB <-> container devoirsfaits
+resource "scaleway_vpc_private_network" "devoirsfaits" {
+  name = "devoirsfaits-pn"
+  tags = ["devoirsfaits", "terraform"]
 }
 
 # Devoirsfaits database on the existing Nextcloud PostgreSQL instance
@@ -140,6 +155,23 @@ resource "scaleway_rdb_privilege" "devoirsfaits" {
   user_name     = scaleway_rdb_user.devoirsfaits.name
   database_name = scaleway_rdb_database.devoirsfaits.name
   permission    = "all"
+}
+
+# Serverless Container devoirsfaits (scale-to-0)
+module "devoirsfaits" {
+  source = "./modules/devoirsfaits"
+
+  devoirsfaits_secret_key          = var.devoirsfaits_secret_key
+  devoirsfaits_mistral_api_key     = var.devoirsfaits_mistral_api_key
+  devoirsfaits_mistral_model       = var.devoirsfaits_mistral_model
+  devoirsfaits_langfuse_public_key = var.devoirsfaits_langfuse_public_key
+  devoirsfaits_langfuse_secret_key = var.devoirsfaits_langfuse_secret_key
+  devoirsfaits_langfuse_host       = var.devoirsfaits_langfuse_host
+  devoirsfaits_db_user             = scaleway_rdb_user.devoirsfaits.name
+  devoirsfaits_db_password         = var.devoirsfaits_db_password
+  devoirsfaits_db_port             = scaleway_rdb_instance.nextcloud_db.private_network[0].port
+  devoirsfaits_db_host             = scaleway_rdb_instance.nextcloud_db.private_network[0].ip
+  devoirsfaits_private_network_id  = scaleway_vpc_private_network.devoirsfaits.id
 }
 
 # Security group for PostgreSQL database

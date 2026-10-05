@@ -74,6 +74,44 @@ variable "devoirsfaits_db_password" {
   sensitive   = true
 }
 
+# Devoirsfaits app (Serverless Container)
+variable "devoirsfaits_secret_key" {
+  description = "SECRET_KEY for the devoirsfaits app (session signing)"
+  type        = string
+  sensitive   = true
+}
+
+variable "devoirsfaits_mistral_api_key" {
+  description = "Mistral API key for the devoirsfaits app"
+  type        = string
+  sensitive   = true
+}
+
+variable "devoirsfaits_mistral_model" {
+  description = "Mistral model for the devoirsfaits app"
+  type        = string
+  default     = "mistral-medium-latest"
+}
+
+variable "devoirsfaits_langfuse_public_key" {
+  description = "Langfuse public key (optional, tracing)"
+  type        = string
+  default     = ""
+}
+
+variable "devoirsfaits_langfuse_secret_key" {
+  description = "Langfuse secret key (optional, tracing)"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "devoirsfaits_langfuse_host" {
+  description = "Langfuse host"
+  type        = string
+  default     = "https://cloud.langfuse.com"
+}
+
 # S3 Bucket Configuration
 variable "s3_bucket_name" {
   description = "Name of the S3 bucket for Nextcloud files"
