@@ -30,3 +30,11 @@ ssl_email = "admin@yourdomain.com"
 # Scaleway Credentials (use environment variables or GitHub Secrets)
 # scw_access_key = "your-scaleway-access-key"
 # scw_secret_key = "your-scaleway-secret-key"
+
+# Devoirsfaits app (Serverless Container)
+# devoirsfaits_secret_key      = "your-app-secret-key"
+# devoirsfaits_mistral_api_key = "your-mistral-api-key"
+# devoirsfaits_mistral_model   = "mistral-medium-latest"
+# devoirsfaits_langfuse_public_key = ""
+# devoirsfaits_langfuse_secret_key = ""
+# devoirsfaits_langfuse_host   = "https://cloud.langfuse.com"
