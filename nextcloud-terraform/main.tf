@@ -126,6 +126,9 @@ resource "scaleway_rdb_instance" "nextcloud_db" {
     enable_ipam = true
   }
 
+  # Conserver l'endpoint public (load balancer) en plus du Private Network
+  load_balancer {}
+
   tags = ["nextcloud", "postgresql", "terraform"]
 }
 

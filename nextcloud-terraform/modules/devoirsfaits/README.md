@@ -25,10 +25,15 @@ devoirsfaits_langfuse_secret_key = ""
 devoirsfaits_langfuse_host        = "https://cloud.langfuse.com"
 ```
 
-### 2. Appliquer
+### 2. Appliquer (en deux fois)
+
+L'IP et le port privés de la RDB ne sont connus qu'après le rattachement du
+Private Network. Au premier apply, la référence `private_network[0].ip/port`
+n'existe pas encore dans le state → erreur `null`. Procédure :
 
 ```bash
-terraform apply    # crée registry, namespace, container, private network
+terraform apply -target=scaleway_vpc_private_network.devoirsfaits -target=scaleway_rdb_instance.nextcloud_db   # 1. crée le PN + l'endpoint privé RDB
+terraform apply                                                                                                    # 2. crée registry, namespace, container (lit l'IP privée)
 ```
 
 ### 3. Construire et pousser l'image
