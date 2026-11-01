@@ -18,7 +18,7 @@ services:
       - internal
 
   app:
-    image: nextcloud:31-fpm-alpine
+    image: nextcloud:35-fpm-alpine
     restart: unless-stopped
     depends_on:
       db:
