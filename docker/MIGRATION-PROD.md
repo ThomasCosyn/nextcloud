@@ -129,33 +129,13 @@ rm -rf /var/www/nextcloud   # apres verif que le data dir est bien migre
 
 Le nginx de l'HOTE reste le terminateur TLS (certificats letsencrypt deja en place,
 renouvellement certbot existant conserve). Il proxifie vers le conteneur docker
-web sur 127.0.0.1:8080. Le vhost hote devient :
+web sur 127.0.0.1:8080.
 
-```nginx
-server {
-    listen 80;
-    server_name nextcloud.goossaertcosyn.fr;
-    return 301 https://$host$request_uri;
-}
-server {
-    listen 443 ssl http2;
-    server_name nextcloud.goossaertcosyn.fr;
-    ssl_certificate /etc/letsencrypt/live/nextcloud.goossaertcosyn.fr/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/nextcloud.goossaertcosyn.fr/privkey.pem;
+Ce vhost reprend les headers de securite et les redirections caldav/carddav de la
+config prod historique, adaptes au mode proxy (cf. nginx/nextcloud-proxy.conf).
 
-    client_max_body_size 0;
-    client_body_timeout 3600s;
-
-    location / {
-        proxy_pass http://127.0.0.1:8080;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto https;
-        proxy_read_timeout 3600s;
-    }
-}
-```
+Fichier de reference : nginx/nextcloud-proxy.conf (a copier dans
+/etc/nginx/sites-available/nextcloud.conf sur l'instance).
 
 Le conteneur web (nginx docker) gere le fastcgi vers app:9000 et les fichiers
 statiques. Dans le config.php docker : 'overwriteprotocol' => 'https' pour que
