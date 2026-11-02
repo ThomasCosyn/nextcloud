@@ -58,15 +58,15 @@ echo "Staging            : $STAGING"
 
 echo ""
 echo "=== 1/4 Listing du contenu Google Drive ==="
-rclone lsf -R "$GDRIVE_SRC" > "${LOG_DIR}/gdrive_listing.txt"
-echo "$(wc -l < "${LOG_DIR}/gdrive_listing.txt") entrees listees (gdrive_listing.txt)"
+rclone lsf -R --files-only "$GDRIVE_SRC" > "${LOG_DIR}/gdrive_listing.txt"
+echo "$(wc -l < "${LOG_DIR}/gdrive_listing.txt") fichiers listes (gdrive_listing.txt)"
 
 echo ""
 echo "=== 2/4 Telechargement des photos/videos uniquement ==="
 mkdir -p "$STAGING/download"
 # recursif dans tous les sous-dossiers ; --include : seules photos et videos
 rclone copy "$GDRIVE_SRC" "$STAGING/download" \
-    --include "*.{jpg,jpeg,png,heic,heif,webp,gif,bmp,tiff,tif,avif,mp4,mov,avi,mkv,webm,3gp,m4v,mts}" \
+    --include "*.{jpg,jpeg,png,heic,heif,webp,gif,bmp,tiff,tif,avif,mp4,mov,avi,mkv,webm,3gp,m4v,mts,JPG,JPEG,PNG,HEIC,HEIF,WEBP,GIF,BMP,TIFF,TIF,AVIF,MP4,MOV,AVI,MKV,WEBM,3GP,M4V,MTS}" \
     --transfers 4 --checkers 8 \
     --log-file "${LOG_DIR}/gdrive_download.log" --log-level INFO
 echo "Telechargement termine."
