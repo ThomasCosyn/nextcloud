@@ -58,15 +58,22 @@ echo "Staging            : $STAGING"
 
 echo ""
 echo "=== 1/4 Listing du contenu Google Drive ==="
-rclone lsf -R --files-only "$GDRIVE_SRC" | tee "${LOG_DIR}/gdrive_listing.txt" | wc -l | xargs -I{} echo "{} fichiers listes"
+rclone lsf -R "$GDRIVE_SRC" > "${LOG_DIR}/gdrive_listing.txt"
+echo "$(wc -l < "${LOG_DIR}/gdrive_listing.txt") entrees listees (gdrive_listing.txt)"
 
 echo ""
-echo "=== 2/4 Telechargement depuis Google Drive ==="
+echo "=== 2/4 Telechargement des photos/videos uniquement ==="
 mkdir -p "$STAGING/download"
+# recursif dans tous les sous-dossiers ; --include : seules photos et videos
 rclone copy "$GDRIVE_SRC" "$STAGING/download" \
+    --include "*.{jpg,jpeg,png,heic,heif,webp,gif,bmp,tiff,tif,avif,mp4,mov,avi,mkv,webm,3gp,m4v,mts}" \
     --transfers 4 --checkers 8 \
     --log-file "${LOG_DIR}/gdrive_download.log" --log-level INFO
 echo "Telechargement termine."
+
+# Fichiers non photo/video ignores : signales pour traitement manuel
+NON_MEDIA=$(grep -viE "\.(jpg|jpeg|png|heic|heif|webp|gif|bmp|tiff|tif|avif|mp4|mov|avi|mkv|webm|3gp|m4v|mts)$" "${LOG_DIR}/gdrive_listing.txt" || true)
+NON_MEDIA_COUNT=$(echo "$NON_MEDIA" | grep -c . || true)
 
 echo ""
 echo "=== 3/4 Tri par date EXIF (annee/mois) ==="
@@ -97,6 +104,18 @@ shopt -u nocaseglob
 
 echo "$count fichiers classes"
 [ "$no_date" -gt 0 ] && echo "ATTENTION: $no_date fichiers sans date EXIF -> $DEFAULT_DATE_DIR (a trier manuellement)"
+
+if [ "$NON_MEDIA_COUNT" -gt 0 ]; then
+    echo ""
+    echo "===================================================================="
+    echo "ATTENTION : $NON_MEDIA_COUNT fichiers non photo/video IGNORES"
+    echo "(a traiter manuellement) :"
+    echo "===================================================================="
+    echo "$NON_MEDIA" | head -50
+    echo "$NON_MEDIA" > "${LOG_DIR}/non_media_a_traiter.txt"
+    [ "$NON_MEDIA_COUNT" -gt 50 ] && echo "... et $((NON_MEDIA_COUNT - 50)) de plus (liste complete : ${LOG_DIR}/non_media_a_traiter.txt)"
+    echo "===================================================================="
+fi
 
 echo ""
 echo "Apercu du classement (20 premiers) :"
